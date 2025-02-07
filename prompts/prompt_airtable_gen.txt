@@ -1,1 +1,1 @@
-write python code for colab to store an airtable api key as an environment variable and will pull in two fields (question_text, scholarship_name) from airtable database name scholarship and put them into an array
+write python code for colab to use the airtable API key named AIRTABLE_API_KEY from colab secrets, and pull in two fields (question_text, scholarship_name) from airtable database named scholarship and put them into an array called essay_prompts
