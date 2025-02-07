@@ -1,0 +1,90 @@
+import os
+# Authenticate user to google cloud with your current credentials
+from google.colab import userdata
+userdata.get('AIRTABLE_API_KEY')
+
+!pip install pyairtable
+from pyairtable import Table
+
+def store_airtable_api_key_in_env(api_key):
+    """Stores the Airtable API key in a Colab environment variable."""
+    os.environ["AIRTABLE_API_KEY"] = api_key
+
+def retrieve_airtable_api_key_from_env():
+    """Retrieves the Airtable API key from the Colab environment variable."""
+    return os.getenv("AIRTABLE_API_KEY")
+
+
+def get_scholarship_data_from_airtable(table, question_field="question_text", name_field="scholarship_name"):
+    """Retrieves question_text and scholarship_name from Airtable."""
+    try:
+        records = table.all()
+        scholarship_data = []
+        for record in records:
+            fields = record.get("fields", {})
+            question = fields.get(question_field)
+            name = fields.get(name_field)
+
+            if question and name:
+                scholarship_data.append({
+                    "question_text": question,
+                    "scholarship_name": name
+                })
+            elif question:
+                scholarship_data.append({
+                    "question_text": question,
+                    "scholarship_name": ""
+                })
+            elif name:
+                scholarship_data.append({
+                    "question_text": "",
+                    "scholarship_name": name
+                })
+            else:
+                continue  # Skip if both fields are missing
+
+        return scholarship_data
+    except Exception as e:
+        print(f"Error retrieving data from Airtable: {e}")
+        return []
+
+
+# --- Colab Usage ---
+
+# 1. Set the Secret in Colab: (Gear icon -> Secrets)
+#    - Name: AIRTABLE_API_KEY
+#    - Value: Your actual API key
+
+# 2. Retrieve and use the API key:
+airtable_api_key = retrieve_airtable_api_key_from_env()
+
+if airtable_api_key:
+    print("Airtable API key retrieved (masked):", airtable_api_key[:4] + "...")
+
+    AIRTABLE_BASE_ID = "YOUR_AIRTABLE_BASE_ID"  # Replace with your Base ID
+    AIRTABLE_TABLE_NAME = "scholarship" # Table name is "scholarship"
+
+    table = Table(airtable_api_key, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
+
+    scholarship_info = get_scholarship_data_from_airtable(table)
+
+    if scholarship_info:
+        print("Scholarship data from Airtable:")
+        for item in scholarship_info:
+            print(item)
+
+        try:
+            import pandas as pd
+            df = pd.DataFrame(scholarship_info)
+            print("\nPandas DataFrame:")
+            print(df)
+        except ImportError:
+            print("\nPandas is not installed. Install it with: !pip install pandas")
+        except Exception as e:
+            print(f"\nCould not create Pandas DataFrame: {e}")
+
+    else:
+        print("No scholarship data found in Airtable.")
+
+else:
+    print("Error: AIRTABLE_API_KEY secret not found. Set it in Colab Secrets.")
