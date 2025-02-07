@@ -1,0 +1,1 @@
+write python code for colab to store an airtable api key as an environment variable and will pull in two fields (question_text, scholarship_name) from airtable
